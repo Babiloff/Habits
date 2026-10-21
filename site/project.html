@@ -1,0 +1,330 @@
+<title>Проект Habits</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;700&family=Golos+Text:wght@400;500;600&display=swap">
+<style>
+/* Layout: one column of running text ~68ch, sticky tab bar with two views (roadmap / framework), a 12-week strip as the signature element. */
+:root{
+  --bg:#f6f7f4; --surface:#ffffff; --fg:#1d221f; --muted:#5d665f; --line:#d9ded8;
+  --accent:#1f6f5a; --accent-soft:#e3efe9; --warn:#b86a1e; --warn-soft:#f6ebdd;
+  --display:'Onest',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --body:'Golos Text',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15191a; --surface:#1d2324; --fg:#e7ebe8; --muted:#9aa59e; --line:#2f3837;
+    --accent:#6fc6a9; --accent-soft:#1f3a33; --warn:#e2a35e; --warn-soft:#3a2d1c; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15191a; --surface:#1d2324; --fg:#e7ebe8; --muted:#9aa59e; --line:#2f3837;
+  --accent:#6fc6a9; --accent-soft:#1f3a33; --warn:#e2a35e; --warn-soft:#3a2d1c; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:720px;margin:0 auto}
+header.top{padding-block:40px 20px}
+.eyebrow{font-family:var(--display);font-weight:500;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,6vw,40px);line-height:1.1;margin:8px 0 10px;text-wrap:balance}
+.lead{color:var(--muted);max-width:60ch;margin:0}
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:4px;border-bottom:1px solid var(--line);padding-top:8px}
+nav.tabs a{font-family:var(--display);font-weight:500;font-size:15px;color:var(--muted);text-decoration:none;padding:10px 14px;border-bottom:2px solid transparent;margin-bottom:-1px}
+nav.tabs a[aria-current="page"]{color:var(--fg);border-color:var(--accent)}
+nav.tabs a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+section.view{padding-top:28px}
+h2{font-family:var(--display);font-weight:700;font-size:24px;margin:36px 0 10px;text-wrap:balance}
+h2:first-of-type{margin-top:8px}
+h3{font-family:var(--display);font-weight:500;font-size:17px;margin:26px 0 6px}
+p,li{max-width:68ch}
+ul,ol{padding-left:22px;margin:8px 0}
+li{margin:4px 0}
+.note{border-left:3px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 6px 6px 0;margin:16px 0}
+.note.warn{border-color:var(--warn);background:var(--warn-soft)}
+.src{color:var(--muted);font-size:14px}
+table{border-collapse:collapse;width:100%;font-size:15px;margin:12px 0}
+.tbl{overflow-x:auto}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--display);font-weight:500;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+pre{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px;font-size:14px;line-height:1.5;overflow-x:auto;font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;margin:12px 0}
+/* 12-week strip */
+.weeks{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin:18px 0 6px}
+.wk{aspect-ratio:1/1.15;max-width:100%;border:1px solid var(--line);border-radius:4px;background:var(--surface);display:flex;flex-direction:column;justify-content:space-between;padding:6px;font-family:var(--display);font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.wk b{font-weight:500;color:var(--fg)}
+.wk.s0{background:var(--accent-soft);border-color:var(--accent)}
+.wk.s1{border-color:var(--accent)}
+.wk.cp{box-shadow:inset 0 -3px 0 var(--warn)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid var(--line);vertical-align:-2px;margin-right:6px;background:var(--surface)}
+.legend .l0::before{background:var(--accent-soft);border-color:var(--accent)}
+.legend .l1::before{border-color:var(--accent)}
+.legend .l2::before{box-shadow:inset 0 -3px 0 var(--warn)}
+.names{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:12px 0}
+.names div{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:12px 14px;font-family:var(--display);font-weight:500;min-width:0}
+.names small{display:block;color:var(--muted);font-family:var(--body);font-weight:400;font-size:13px;margin-top:4px}
+.rule{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:10px 0}
+.rule b{font-family:var(--display);font-weight:500;color:var(--accent);white-space:nowrap}
+footer{margin-top:48px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:14px}
+@media (max-width:480px){.weeks{gap:3px}.wk{padding:4px;font-size:11px}}
+@media (prefers-reduced-motion:no-preference){nav.tabs a{transition:color .15s,border-color .15s}}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">90 дней · 6 столпов · 1 базовая привычка</div>
+  <h1>Проект Habits</h1>
+  <p class="lead">Дорожная карта и правила планирования. Источник правды лежит в репозитории, эта страница его зеркало.</p>
+</header>
+
+<nav class="tabs" id="tabs">
+  <a href="#roadmap" data-view="roadmap" aria-current="page">Дорожная карта</a>
+  <a href="#framework" data-view="framework">Фреймворк плана</a>
+  <a href="#pillars" data-view="pillars">Столпы и принципы</a>
+</nav>
+
+<!-- ============ ROADMAP ============ -->
+<section class="view" id="view-roadmap">
+<h2>12 недель</h2>
+<p>Горизонт как у Морана и как у летнего челленджа с другом. Старт после утверждения, в конце 12-й недели итог и решение, что дальше.</p>
+<div class="weeks">
+  <div class="wk s0"><b>1</b><span>фундамент</span></div>
+  <div class="wk s0"><b>2</b><span>диагност.</span></div>
+  <div class="wk s1"><b>3</b><span>трекер</span></div>
+  <div class="wk s1"><b>4</b><span></span></div>
+  <div class="wk s1 cp"><b>5</b><span>точка</span></div>
+  <div class="wk s1"><b>6</b><span></span></div>
+  <div class="wk s1"><b>7</b><span></span></div>
+  <div class="wk s1 cp"><b>8</b><span>точка</span></div>
+  <div class="wk s1"><b>9</b><span></span></div>
+  <div class="wk s1"><b>10</b><span></span></div>
+  <div class="wk s1 cp"><b>11</b><span>точка</span></div>
+  <div class="wk s1"><b>12</b><span>итог</span></div>
+</div>
+<div class="legend"><span class="l0">фундамент и диагностика</span><span class="l1">ежедневный трекер</span><span class="l2">контрольная точка: рост или уменьшение привычек</span></div>
+
+<h2>Название проекта</h2>
+<p>Нужно позитивное имя, как «Я не проебу это лето». Выбери или предложи своё.</p>
+<div class="names">
+  <div>90 дней, которые я прожил<small>рамка «прожить», не «исправить»</small></div>
+  <div>Осень на зачёт<small>твоё слово «зачёт» из таблицы с другом</small></div>
+  <div>Я тот, кто делает<small>из твоей identity-формулировки</small></div>
+  <div>Зачёт до Нового года<small>старт в конце октября, финиш в январе</small></div>
+</div>
+
+<h2>Этап 0. Фундамент. Неделя 1</h2>
+<p>Цель: знать, ради чего, прежде чем решать, что делать.</p>
+<ul>
+  <li>Столпы утверждены: шесть, бизнес и финансы внутри карьеры.</li>
+  <li>Identity-строка по каждому столпу: «я человек, который…». Одна строка, своими словами. По два столпа за вечер.</li>
+  <li>Выбрать название проекта.</li>
+  <li>Поставить триггеры на 7:15 и 21:30.</li>
+</ul>
+<p class="src">Результат: файл с identity-строками, триггеры работают.</p>
+
+<h2>Этап 1. Диагностика. Недели 1–2</h2>
+<p>Цель: увидеть, где ты сейчас, цифрами и списками, а не ощущениями. Четыре опросника, по одному за вечер. Я задаю, ты отвечаешь, я записываю.</p>
+<div class="tbl"><table>
+<tr><th>Опросник</th><th>Что даёт</th></tr>
+<tr><td>Колесо баланса</td><td>балл 1–10 по каждому столпу: сейчас и через 90 дней</td></tr>
+<tr><td>Инвентарь привычек</td><td>по каждому столпу: что уже делаешь всегда, иногда, никогда</td></tr>
+<tr><td>Пожиратели времени</td><td>список «да / нет», минут в день по ощущению, когда чаще всего</td></tr>
+<tr><td>ACT-вопросник</td><td>«каким человеком я хочу быть» по столпам, начиная с семьи и партнёрства</td></tr>
+</table></div>
+<p>ACT-вопросник длинный, его растягиваем: по одной сфере за вечер в течение этапов 1–3. Он не блокирует старт трекера.</p>
+<p class="src">Результат: видно, какие два-три столпа самые слабые и какие пожиратели самые жирные.</p>
+
+<h2>Этап 2. Выбор привычек. Конец недели 2</h2>
+<p>Цель: три-четыре привычки, не больше.</p>
+<ul>
+  <li><strong>Одна базовая для всех:</strong> вечерний план в 21:30, 10 минут. Без неё остальные не держатся.</li>
+  <li><strong>По одной крошечной привычке</strong> на два-три столпа с самым низким баллом колеса. Крошечная значит 2–5 минут, провалить почти невозможно. Примеры: стакан воды после подъёма, 3 минуты медитации, одно сообщение другу, 5 минут разговора с Лизой без телефона.</li>
+  <li><strong>Остальные столпы</strong> получают недельный минимум, не ежедневный. Распределяется в воскресенье.</li>
+  <li><strong>Один пожиратель на замену.</strong> Не «не сидеть в соцсетях», а «вместо соцсетей в обед выхожу на 10 минут на улицу». Замена, не запрет.</li>
+</ul>
+<p>Каждая привычка оформляется по Клиру:</p>
+<pre>Привычка: ...
+Столп: ...
+Якорь (после чего): ...
+Минимальная версия (2–5 мин): ...
+Полная версия (куда растёт): ...
+Награда / отметка: ...
+Среда (что убрать или положить на виду): ...</pre>
+
+<h2>Этап 3. Трекер и ритм. Недели 3–12</h2>
+<p>Цель: накопить доказательства. Каждый день отметка, каждую неделю счёт.</p>
+<div class="rule">
+  <b>7:15</b><span>Я присылаю главную задачу на сегодня из вечернего плана и якоря дня. Ты подтверждаешь или правишь.</span>
+  <b>21:30</b><span>Я спрашиваю: главная задача продвинута? Каждая привычка: да или нет. Если нет: что помешало, одной фразой. План на завтра. Я записываю в трекер.</span>
+  <b>Вс, 20 мин</b><span>Процент выполнения за неделю, цель 85 %. Причины срывов. Одна корректировка, не больше. Недельные минимумы на следующую неделю.</span>
+</div>
+<div class="note"><strong>Зачёт дня</strong> = вечерний план написан + главная задача продвинута + не меньше половины крошечных привычек сделано. Три условия, чтобы день «всё понемногу» не получал зачёт.</div>
+
+<h2>Этап 4. Усложнение. Контрольные точки: недели 5, 8, 11</h2>
+<p>Одно правило роста на всех привычках, по проценту выполнения за три недели:</p>
+<div class="tbl"><table>
+<tr><th>Выполнение</th><th>Что делаем</th></tr>
+<tr><td>80 % и выше</td><td>привычка растёт на один шаг к полной версии: зарядка 5 минут становится 15, сообщение другу становится звонком</td></tr>
+<tr><td>50–80 %</td><td>оставляем как есть, смотрим причину</td></tr>
+<tr><td>ниже 50 %</td><td>уменьшаем шаг или меняем якорь. Это не провал, это неверно подобранный размер</td></tr>
+</table></div>
+<p>Новые привычки добавляются только когда все текущие на 80 % и выше. Максимум одна новая за три недели.</p>
+
+<h2>Параллельно, с первой недели</h2>
+<ul>
+  <li><strong>Чтение как подзарядка.</strong> 15 минут в день. Сначала дочитать Клира, затем Моран. Это столп «досуг» и одновременно топливо.</li>
+  <li><strong>Медитация 3–5 минут</strong> как кандидат в привычку столпа «духовное».</li>
+  <li><strong>Карьерная развилка</strong> (менять работу или становиться проактивным на текущей) и <strong>декомпозиция финансовой цели</strong>: отдельные разговоры, не раньше недели 4, когда вера в себя подрастёт на фактах.</li>
+</ul>
+
+<h2>Чего не делаем</h2>
+<ul>
+  <li>Не берём больше четырёх привычек одновременно.</li>
+  <li>Не запрещаем, а заменяем.</li>
+  <li>Не пересматриваем систему по настроению. Только в воскресенье и на контрольных точках.</li>
+  <li>Не ждём мотивации. Триггеры автоматические, план пишется в 21:30 независимо от того, каким был день.</li>
+</ul>
+</section>
+
+<!-- ============ FRAMEWORK ============ -->
+<section class="view" id="view-framework" hidden>
+<h2>Правило столпов</h2>
+<p>Не все шесть столпов каждый день. Иначе план превращается в «всё понемногу», а такой день ты сам описал как пустой.</p>
+<div class="tbl"><table>
+<tr><th>Ритм</th><th>Столпы</th><th>Как</th></tr>
+<tr><td>Каждый день</td><td>здоровье, семья, плюс базовая привычка (вечерний план)</td><td>микро-якоря, 2–5 минут</td></tr>
+<tr><td>Каждый день</td><td>столп главной задачи</td><td>один блок времени на главную задачу</td></tr>
+<tr><td>Недельный минимум</td><td>социальная жизнь, духовное, досуг, карьера сверх главной задачи</td><td>число раз в неделю, распределяется в воскресенье</td></tr>
+</table></div>
+<div class="note">Ответ на твоё сомнение про социальную жизнь: оба варианта верны, и мы их совмещаем. Микро-версия «одно сообщение другу» может быть ежедневной привычкой, если социальный столп окажется среди самых слабых. Полная версия «встреча или звонок» живёт как недельный минимум.</div>
+
+<h2>Вечерний план на завтра. 21:30, 10 минут</h2>
+<p>Пишется в чат в ответ на мой вопрос. Пять строк, не больше.</p>
+<pre>1. Главная задача: &lt;одна&gt;. Первый шаг (≤ 15 минут): &lt;...&gt;
+2. Блок: &lt;во сколько и где делаю главную задачу, с какого по какое&gt;
+3. Ещё: &lt;2–3 второстепенные задачи, без них день всё равно зачёт&gt;
+4. Якоря: &lt;ежедневные привычки дня; пока список не утверждён, пропускаем&gt;
+5. Риск: &lt;что может сорвать&gt; → тогда &lt;что делаю&gt;</pre>
+<h3>Откуда каждое правило</h3>
+<ul>
+  <li><strong>Одна главная задача, первой в день.</strong> Трейси, «Съешьте лягушку». Для тебя особенно: главная задача даёт то самое «продвинулся к цели», которого нет в дне «всё понемногу».</li>
+  <li><strong>Блок времени, не пункт списка.</strong> Ньюпорт, тайм-блокинг. Задача без времени и места не выполняется, она остаётся намерением.</li>
+  <li><strong>Строка «риск → тогда».</strong> Планирование «если, то», его упоминает Кулиева в методах веры в себя. Заранее придуманный ответ на срыв заметно повышает шанс устоять.</li>
+  <li><strong>Пять строк, не двадцать.</strong> Крошечный старт, Клир. Привычки писать план ещё нет, поэтому форма должна занимать пять минут.</li>
+</ul>
+
+<h2>Утро. 7:15, 2 минуты</h2>
+<p>Я присылаю твой вчерашний план. Ты в автобусе отвечаешь одним словом «ок» или правишь главную задачу. Цель утреннего сообщения не планирование, а напоминание, что план есть. Ты сам сказал: «я уже еду и над этим размышляю».</p>
+
+<h2>Вечерний разбор. 21:30, перед планом на завтра</h2>
+<p>Четыре вопроса от меня:</p>
+<ol>
+  <li>Главная задача: продвинута? да / частично / нет.</li>
+  <li>Привычки дня: по каждой да / нет.</li>
+  <li>Если что-то «нет»: что помешало, одной фразой. Без оправданий и без самобичевания, просто факт: «проспал», «Лиза позвала», «залип в телефон в 19:00».</li>
+  <li>Зачёт дня считаю я по правилу из дорожной карты. Ты видишь результат в трекере.</li>
+</ol>
+<div class="note">Причина срыва это самые ценные данные проекта. По ним в воскресенье меняем якорь или размер шага.</div>
+
+<h2>Недельный план. Воскресенье, 20 минут</h2>
+<p class="src">Источник: Моран, «12 недель в году». Неделя это единица исполнения, не день и не месяц.</p>
+<pre>Неделя N из 12. Счёт прошлой недели: &lt;% выполнения&gt;
+Главная цель недели: &lt;одна, из самого слабого столпа&gt;
+Тактики (3–5 конкретных действий на неделю): ...
+Недельные минимумы:
+  социальная жизнь: &lt;N раз&gt;: &lt;что именно&gt;
+  духовное: &lt;N раз&gt;: &lt;...&gt;
+  досуг: &lt;N раз&gt;: &lt;...&gt;
+  карьера сверх главного: &lt;N раз&gt;: &lt;...&gt;
+Фиксированное с Лизой: &lt;прогулки, планы, что нельзя двигать&gt;
+Одна корректировка системы: &lt;что меняем после разбора срывов&gt;</pre>
+<p>Счёт недели по Морану: выполненные тактики и привычки делим на запланированные. Цель 85 %. Не 100 %: план на 100 % означает, что он был слишком лёгким.</p>
+
+<h2>Как я оцениваю присланный план</h2>
+<p class="src">Чек-лист «вера в план» из листа Кулиевой, семь пунктов.</p>
+<ol>
+  <li>Знаю первый шаг, который можно сделать уже сегодня.</li>
+  <li>Знаю, сколько времени займёт.</li>
+  <li>Знаю, какие ресурсы нужны.</li>
+  <li>Знаю, какие препятствия могут возникнуть.</li>
+  <li>Знаю, как измерить прогресс.</li>
+  <li>Знаю, к кому обратиться за помощью.</li>
+  <li>Знаю, как выглядит успешное завершение.</li>
+</ol>
+<div class="tbl"><table>
+<tr><th>Баллов</th><th>Оценка</th></tr>
+<tr><td>6–7</td><td>хороший план</td></tr>
+<tr><td>4–5</td><td>нужны уточнения, один-два вопроса от меня</td></tr>
+<tr><td>0–3</td><td>слишком абстрактный, переписываем вместе</td></tr>
+</table></div>
+<p>Для дневного плана достаточно пунктов 1, 2, 4 и 7. Для недельного и для планов на месяц смотрим все семь.</p>
+
+<h2>Что я не делаю с твоим планом</h2>
+<ul>
+  <li>Не добавляю задач. Если план кажется пустым, спрашиваю, а не дописываю.</li>
+  <li>Не оцениваю словами «плохо». Только по чек-листу, с конкретным пунктом, которого не хватает.</li>
+  <li>Не предлагаю переписать с нуля, если выполнено 4 из 7. Один-два уточняющих вопроса, и план готов.</li>
+</ul>
+</section>
+
+<!-- ============ PILLARS ============ -->
+<section class="view" id="view-pillars" hidden>
+<h2>Шесть столпов</h2>
+<div class="tbl"><table>
+<tr><th>Столп</th><th>Что внутри</th></tr>
+<tr><td>Здоровье</td><td>сон, еда, зарядка, спорт, врачи</td></tr>
+<tr><td>Духовное</td><td>медитация, йога, тишина, смысл</td></tr>
+<tr><td>Социальная жизнь</td><td>друзья, новые люди, общение с незнакомцами</td></tr>
+<tr><td>Карьера</td><td>основная работа, бизнес Film Lab, финансы, проактивность</td></tr>
+<tr><td>Семья</td><td>Лиза, родители, сестра</td></tr>
+<tr><td>Досуг</td><td>прогулки, новые места, чтение, творчество</td></tr>
+</table></div>
+<p>В каждом столпе привычки растут от малого к большому. Сначала «стакан воды», потом «зарядка», потом «тренировка».</p>
+
+<h2>Принципы</h2>
+<ol>
+  <li><strong>План накануне.</strong> День с планом, написанным вечером, почти всегда хороший. Это базовая привычка номер один.</li>
+  <li><strong>Крошечный старт.</strong> Первая версия привычки такая, что провалить её почти невозможно. Вера в себя растёт от накопленных побед, а не от амбиций.</li>
+  <li><strong>Срыв = данные.</strong> Не оценка. Разбираем причину, меняем якорь или уменьшаем шаг, идём дальше.</li>
+  <li><strong>Отметка каждый день.</strong> Видимый прогресс заряжает. Трекер это копилка доказательств «я могу».</li>
+  <li><strong>Один источник на уровень.</strong> Чтобы источники не спорили между собой.</li>
+  <li><strong>Конечный срок и партнёр.</strong> Единственный прошлый успех был летним челленджем с другом. Воспроизводим: 90 дней, Claude как партнёр по отчётности.</li>
+</ol>
+
+<h2>Источники по уровням</h2>
+<div class="tbl"><table>
+<tr><th>Уровень</th><th>Источник</th></tr>
+<tr><td>Зачем, ценности</td><td>ACT-вопросник «Жизненные ценности»</td></tr>
+<tr><td>Как устроена привычка</td><td>Клир, «Атомные привычки»</td></tr>
+<tr><td>Цикл и неделя</td><td>Моран, «12 недель в году»</td></tr>
+<tr><td>День</td><td>Тайм-блокинг (Ньюпорт) + одна главная задача (Трейси)</td></tr>
+<tr><td>Проверка плана, формула действия</td><td>Кулиева, «Знания &gt;&gt;&gt; Действия»</td></tr>
+</table></div>
+<p class="src">Принцип отбора: один источник на уровень; совместимость с тем, что у тебя уже работает (ежедневная отметка, конечный срок); небольшой объём, есть на русском. GTD не взяли: риск утонуть в настройке системы.</p>
+
+<h2>Каждый день</h2>
+<div class="rule">
+  <b>7:15</b><span>короткое утреннее сообщение: план на день, одна главная задача.</span>
+  <b>21:30</b><span>вечерний разбор: что сделано, зачёт или нет, причина срыва если был, план на завтра. 10 минут, сон в 22:00.</span>
+  <b>Воскресенье</b><span>недельный обзор: процент выполнения, одна корректировка.</span>
+</div>
+</section>
+
+<footer>Источник: plan/roadmap.md, framework/daily-plan.md, README.md в репозитории Habits. Страница обновляется после их изменения.</footer>
+</div>
+
+<script>
+(function(){
+  var views=['roadmap','framework','pillars'];
+  var links=document.querySelectorAll('#tabs a');
+  function show(name){
+    if(views.indexOf(name)<0) name='roadmap';
+    views.forEach(function(v){document.getElementById('view-'+v).hidden=(v!==name);});
+    links.forEach(function(a){ if(a.dataset.view===name) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
+    try{localStorage.setItem('habits-view',name);}catch(e){}
+  }
+  links.forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();show(a.dataset.view);window.scrollTo({top:0});});});
+  var initial=(location.hash||'').replace('#','');
+  if(views.indexOf(initial)<0){ try{initial=localStorage.getItem('habits-view')||'roadmap';}catch(e){initial='roadmap';} }
+  show(initial);
+})();
+</script>
