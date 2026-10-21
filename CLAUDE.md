@@ -26,7 +26,10 @@
 - Данные трекера пишешь ты в `tracker/data.json` по его ответам в 21:30, затем обновляешь артефакт.
 
 ## Веб-страницы
-Пользователь читает документы не в репозитории, а как артефакты (веб-страницы). После изменения `plan/roadmap.md`, `framework/daily-plan.md` или README обнови `site/project.html` и переопубликуй по тому же url: https://claude.ai/artifact/4YVgcWZHv1UUfhH7E1RC7x (Artifact tool, `url` параметр). Ссылки на все страницы хранятся в README, раздел «Где читать».
+Пользователь читает документы не в репозитории, а как артефакты (веб-страницы). После изменения `plan/roadmap.md`, `framework/daily-plan.md` или README обнови `site/project.html` и переопубликуй по тому же url: https://claude.ai/artifact/4YVgcWZHv1UUfhH7E1RC7x (Artifact tool, `url` параметр). Трекер: после записи в `tracker/data.json` переопубликуй `tracker/index.html` с `files: {"data.json": "tracker/data.json"}` по url https://claude.ai/artifact/WKbqnoMXds6SxZbuW6hpfJ. Ссылки на все страницы хранятся в README, раздел «Где читать».
+
+## Трекер: как записывать день
+Запись в `tracker/data.json`, массив `days`: `{"date":"YYYY-MM-DD","main_task":"...","main_done":"yes|partial|no","habits":{"<id>":true|false},"note":"причина срыва одной фразой или пусто"}`. Привычки в массиве `habits` с полями id, name, pillar, type (good|bad), anchor, min, since. Поле `project.start` заполнить датой первого вечернего плана и удалить примерные дни (`"example": true`). Зачёт считает страница по правилу из `rules.pass`.
 
 ## Git
 Коммить после каждого содержательного изменения. Ветка: `claude/peaceful-carson-8aioty`. Не создавать PR без просьбы.

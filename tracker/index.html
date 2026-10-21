@@ -1,0 +1,225 @@
+<title>Трекер Habits</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;700&family=Golos+Text:wght@400;500;600&display=swap">
+<style>
+/* Layout: stat row on top, 12-week calendar grid (rows = weeks, cols = Mon..Sun), habit rows for the last 14 days, then the day log as the table view. */
+:root{
+  --bg:#f6f7f4; --surface:#ffffff; --fg:#1d221f; --muted:#5d665f; --line:#d9ded8; --line-soft:#eceeea;
+  --accent:#1f6f5a; --accent-soft:#e3efe9;
+  --pass:#2a8a6b; --pass-soft:#d6ebe2; --fail:#c2642a; --fail-soft:#f5e3d6; --none:#e4e7e2; --future:#f1f3ef;
+  --display:'Onest',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --body:'Golos Text',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15191a; --surface:#1d2324; --fg:#e7ebe8; --muted:#9aa59e; --line:#2f3837; --line-soft:#262e2d;
+    --accent:#6fc6a9; --accent-soft:#1f3a33;
+    --pass:#5fbf9c; --pass-soft:#1f3a33; --fail:#e08a52; --fail-soft:#3d2a1c; --none:#2b3331; --future:#1a2021; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15191a; --surface:#1d2324; --fg:#e7ebe8; --muted:#9aa59e; --line:#2f3837; --line-soft:#262e2d;
+  --accent:#6fc6a9; --accent-soft:#1f3a33;
+  --pass:#5fbf9c; --pass-soft:#1f3a33; --fail:#e08a52; --fail-soft:#3d2a1c; --none:#2b3331; --future:#1a2021; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:760px;margin:0 auto}
+header{padding-block:36px 18px;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 16px}
+.eyebrow{font-family:var(--display);font-weight:500;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,6vw,36px);line-height:1.1;margin:6px 0 0;text-wrap:balance}
+.sub{color:var(--muted);font-size:14px;margin:0}
+.example{display:inline-block;background:var(--fail-soft);color:var(--fail);font-family:var(--display);font-size:12px;font-weight:500;padding:3px 8px;border-radius:4px;letter-spacing:.03em}
+h2{font-family:var(--display);font-weight:700;font-size:20px;margin:32px 0 10px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:12px 14px;min-width:0}
+.stat .k{font-family:var(--display);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-family:var(--display);font-weight:700;font-size:28px;line-height:1.1;margin-top:4px;font-variant-numeric:tabular-nums}
+.stat .d{color:var(--muted);font-size:13px;margin-top:2px}
+/* calendar */
+.cal{display:grid;grid-template-columns:44px repeat(7,1fr);gap:4px;align-items:center}
+.cal .h{font-family:var(--display);font-size:11px;color:var(--muted);text-align:center;letter-spacing:.04em}
+.cal .w{font-family:var(--display);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.cell{aspect-ratio:1;max-width:100%;border-radius:4px;background:var(--none);position:relative;cursor:default;border:2px solid transparent}
+.cell.pass{background:var(--pass)}
+.cell.fail{background:var(--fail)}
+.cell.future{background:var(--future);border:1px dashed var(--line)}
+.cell.today{border-color:var(--fg)}
+.cell.cp::after{content:"";position:absolute;left:4px;right:4px;bottom:3px;height:2px;background:var(--surface);opacity:.8;border-radius:1px}
+.cell:hover,.cell:focus-visible{outline:2px solid var(--fg);outline-offset:1px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:6px;background:var(--none)}
+.legend .lp::before{background:var(--pass)}.legend .lf::before{background:var(--fail)}.legend .lu::before{background:var(--future);border:1px dashed var(--line)}
+/* habits grid */
+.hab{overflow-x:auto}
+.hab table{border-collapse:separate;border-spacing:3px;font-size:14px;min-width:420px}
+.hab th{font-family:var(--display);font-weight:500;font-size:11px;color:var(--muted);text-align:center;padding:0 0 4px;font-variant-numeric:tabular-nums}
+.hab th.n{text-align:left;font-size:13px;color:var(--fg)}
+.hab td{padding:0}
+.hab td.n{white-space:nowrap;padding-right:10px}
+.hab td.n small{display:block;color:var(--muted);font-size:12px}
+.dot{width:26px;height:26px;border-radius:5px;background:var(--none);margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--surface);cursor:default}
+.dot.y{background:var(--pass)}.dot.n{background:var(--fail)}.dot.f{background:var(--future);border:1px dashed var(--line)}
+.dot:hover{outline:2px solid var(--fg);outline-offset:1px}
+.pct{font-family:var(--display);font-weight:500;font-variant-numeric:tabular-nums;text-align:right;padding-left:8px;white-space:nowrap}
+/* day log */
+.log{display:flex;flex-direction:column;gap:8px}
+.day{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:10px 14px;min-width:0}
+.day .dt{font-family:var(--display);font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+.day .mt{min-width:0}
+.day .mt small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.pill{font-family:var(--display);font-size:12px;font-weight:500;padding:3px 9px;border-radius:999px;white-space:nowrap;align-self:start}
+.pill.pass{background:var(--pass-soft);color:var(--pass)}.pill.fail{background:var(--fail-soft);color:var(--fail)}
+.empty{border:1px dashed var(--line);border-radius:6px;padding:18px 16px;color:var(--muted)}
+.tip{position:fixed;z-index:20;pointer-events:none;background:var(--fg);color:var(--bg);font-size:13px;line-height:1.35;padding:7px 10px;border-radius:5px;max-width:260px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+footer{margin-top:40px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:14px}
+@media (max-width:480px){.day{grid-template-columns:1fr auto}.day .dt{grid-column:1/-1}}
+</style>
+
+<div class="wrap">
+<header>
+  <div>
+    <div class="eyebrow" id="eyebrow">90 дней</div>
+    <h1 id="title">Трекер</h1>
+    <p class="sub" id="sub"></p>
+  </div>
+  <div id="badge"></div>
+</header>
+
+<div class="stats" id="stats"></div>
+
+<h2>12 недель</h2>
+<div class="cal" id="cal"></div>
+<div class="legend"><span class="lp">зачёт</span><span class="lf">не зачёт</span><span>нет отметки</span><span class="lu">ещё впереди</span><span>черта снизу: контрольная точка</span></div>
+
+<h2>Привычки, последние 14 дней</h2>
+<div class="hab" id="hab"></div>
+
+<h2>Дни</h2>
+<div class="log" id="log"></div>
+
+<footer id="foot">Правило зачёта: план написан + главная задача продвинута + не меньше половины привычек сделано. Данные: tracker/data.json, заполняются в вечернем разборе в 21:30.</footer>
+</div>
+
+<script>
+(async function(){
+  var $=function(id){return document.getElementById(id);};
+  var data;
+  try{ var r=await fetch('data.json',{cache:'no-store'}); data=await r.json(); }
+  catch(e){ $('log').innerHTML='<div class="empty">Не удалось загрузить данные трекера.</div>'; return; }
+
+  var P=data.project, habits=data.habits||[], days=(data.days||[]).slice().sort(function(a,b){return a.date<b.date?-1:1;});
+  var isExample=!P.start;
+  var MS=864e5;
+  function d(s){var p=s.split('-');return new Date(Date.UTC(+p[0],+p[1]-1,+p[2]));}
+  function iso(x){return x.toISOString().slice(0,10);}
+  function addDays(x,n){return new Date(x.getTime()+n*MS);}
+  function monday(x){var w=(x.getUTCDay()+6)%7;return addDays(x,-w);}
+  var RU_D=['пн','вт','ср','чт','пт','сб','вс'];
+  var RU_M=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  function fmt(s){var x=d(s);return x.getUTCDate()+' '+RU_M[x.getUTCMonth()];}
+  function fmtD(s){var x=d(s);return RU_D[(x.getUTCDay()+6)%7]+' '+x.getUTCDate()+' '+RU_M[x.getUTCMonth()];}
+
+  var today=new Date(); today=new Date(Date.UTC(today.getFullYear(),today.getMonth(),today.getDate()));
+  var start=P.start?d(P.start):(days.length?d(days[0].date):today);
+  var weeks=P.weeks||12;
+  var gridStart=monday(start);
+  var end=addDays(start,weeks*7-1);
+
+  // pass rule
+  function evalDay(day){
+    var active=habits.filter(function(h){return !h.since||h.since<=day.date;});
+    var done=active.filter(function(h){return day.habits&&day.habits[h.id];}).length;
+    var planned=!!(day.habits&&day.habits.plan);
+    var main=day.main_done==='yes'||day.main_done==='partial';
+    var half=active.length===0?true:done>=Math.ceil(active.length/2);
+    return {pass:planned&&main&&half,done:done,total:active.length};
+  }
+  var byDate={}; days.forEach(function(x){byDate[x.date]=x; x._e=evalDay(x);});
+
+  // header
+  $('title').textContent=P.name||'Трекер';
+  var dayNo=Math.floor((today-start)/MS)+1;
+  $('eyebrow').textContent=isExample?'пример · старт не назначен':('день '+Math.max(1,Math.min(dayNo,weeks*7))+' из '+(weeks*7)+' · неделя '+Math.max(1,Math.min(Math.ceil(dayNo/7),weeks))+' из '+weeks);
+  $('sub').textContent=isExample?'Так будет выглядеть трекер. Три дня ниже выдуманы для примера.':('с '+fmt(P.start)+' по '+fmt(iso(end)));
+  if(isExample) $('badge').innerHTML='<span class="example">примерные данные</span>';
+
+  // stats
+  var marked=days.filter(function(x){return x.date<=iso(today)||isExample;});
+  var passes=marked.filter(function(x){return x._e.pass;}).length;
+  var streak=0; for(var i=marked.length-1;i>=0;i--){ if(marked[i]._e.pass) streak++; else break; }
+  var wkStart=monday(isExample&&days.length?d(days[days.length-1].date):today);
+  var wkDays=marked.filter(function(x){return d(x.date)>=wkStart;});
+  var wkPct=wkDays.length?Math.round(100*wkDays.filter(function(x){return x._e.pass;}).length/wkDays.length):null;
+  var planDays=marked.filter(function(x){return x.habits&&x.habits.plan;}).length;
+  $('stats').innerHTML=
+    '<div class="stat"><div class="k">Серия</div><div class="v">'+streak+'</div><div class="d">дней с зачётом подряд</div></div>'+
+    '<div class="stat"><div class="k">Эта неделя</div><div class="v">'+(wkPct===null?'—':wkPct+'%')+'</div><div class="d">цель '+(data.rules&&data.rules.week_target||85)+'%</div></div>'+
+    '<div class="stat"><div class="k">Зачётов</div><div class="v">'+passes+'<span style="font-size:16px;color:var(--muted)"> / '+marked.length+'</span></div><div class="d">за всё время</div></div>'+
+    '<div class="stat"><div class="k">Планов написано</div><div class="v">'+planDays+'</div><div class="d">базовая привычка</div></div>';
+
+  // calendar
+  var cal=$('cal'), html='<div></div>';
+  RU_D.forEach(function(n){html+='<div class="h">'+n+'</div>';});
+  var cps=[5,8,11];
+  for(var w=0;w<weeks;w++){
+    html+='<div class="w">'+(w+1)+'</div>';
+    for(var k=0;k<7;k++){
+      var dt=addDays(gridStart,w*7+k), s=iso(dt), cls='cell', tip=fmtD(s);
+      if(dt<start||dt>end){cls+=' future';tip+=': вне цикла';}
+      else if(byDate[s]){cls+=byDate[s]._e.pass?' pass':' fail';tip+=': '+(byDate[s]._e.pass?'зачёт':'не зачёт')+(byDate[s].main_task?'. '+byDate[s].main_task:'');}
+      else if(dt>today&&!isExample){cls+=' future';tip+=': впереди';}
+      else {tip+=': нет отметки';}
+      if(cps.indexOf(w+1)>=0&&k===6) cls+=' cp';
+      if(s===iso(today)&&!isExample) cls+=' today';
+      html+='<div class="'+cls+'" tabindex="0" data-tip="'+tip.replace(/"/g,'&quot;')+'"></div>';
+    }
+  }
+  cal.innerHTML=html;
+
+  // habits grid: last 14 days ending at last marked day (or today)
+  var last=isExample&&days.length?d(days[days.length-1].date):today;
+  var cols=[]; for(var j=13;j>=0;j--){cols.push(iso(addDays(last,-j)));}
+  if(!habits.length){ $('hab').innerHTML='<div class="empty">Привычки появятся после этапа 2.</div>'; }
+  else{
+    var t='<table><tr><th class="n">Привычка</th>';
+    cols.forEach(function(c){var x=d(c);t+='<th>'+x.getUTCDate()+'</th>';});
+    t+='<th></th></tr>';
+    habits.forEach(function(h){
+      var y=0,n=0;
+      t+='<tr><td class="n">'+h.name+'<small>'+(h.anchor?'после '+h.anchor.replace(/^после /,''):h.pillar)+'</small></td>';
+      cols.forEach(function(c){
+        var day=byDate[c], cls='dot', tip=h.name+', '+fmtD(c), ch='';
+        if(h.since&&c<h.since){cls+=' f';tip+=': ещё не начата';}
+        else if(day&&day.habits&&c in day.habits){ if(day.habits[h.id]){cls+=' y';ch='✓';y++;tip+=': да';} else {cls+=' n';ch='–';n++;tip+=': нет'+(day.note?'. '+day.note:'');} }
+        else if(d(c)>today&&!isExample){cls+=' f';tip+=': впереди';}
+        else {tip+=': нет отметки';}
+        t+='<td><div class="'+cls+'" tabindex="0" data-tip="'+tip.replace(/"/g,'&quot;')+'">'+ch+'</div></td>';
+      });
+      t+='<td class="pct">'+(y+n?Math.round(100*y/(y+n))+'%':'—')+'</td></tr>';
+    });
+    $('hab').innerHTML=t+'</table>';
+  }
+
+  // day log, newest first
+  if(!days.length){ $('log').innerHTML='<div class="empty">Первая запись появится после первого вечернего разбора.</div>'; }
+  else{
+    var L='';
+    days.slice().reverse().forEach(function(x){
+      var md={yes:'главная задача сделана',partial:'главная задача частично',no:'главная задача не сделана'}[x.main_done]||'';
+      L+='<div class="day"><div class="dt">'+fmtD(x.date)+'</div><div class="mt">'+(x.main_task||'')+'<small>'+md+(x._e.total?' · привычки '+x._e.done+' из '+x._e.total:'')+(x.note?' · '+x.note:'')+'</small></div><span class="pill '+(x._e.pass?'pass':'fail')+'">'+(x._e.pass?'зачёт':'не зачёт')+'</span></div>';
+    });
+    $('log').innerHTML=L;
+  }
+
+  // tooltips
+  var tip=document.createElement('div'); tip.className='tip'; tip.hidden=true; document.body.appendChild(tip);
+  function showTip(el,ev){ tip.textContent=el.getAttribute('data-tip'); tip.hidden=false; var r=el.getBoundingClientRect(); var x=Math.min(window.innerWidth-270,Math.max(8,r.left)); var y=r.bottom+6; if(y>window.innerHeight-80) y=r.top-tip.offsetHeight-6; tip.style.left=x+'px'; tip.style.top=y+'px'; }
+  document.addEventListener('mouseover',function(e){var el=e.target.closest('[data-tip]'); if(el) showTip(el,e); else tip.hidden=true;});
+  document.addEventListener('focusin',function(e){var el=e.target.closest('[data-tip]'); if(el) showTip(el,e);});
+  document.addEventListener('focusout',function(){tip.hidden=true;});
+  document.addEventListener('scroll',function(){tip.hidden=true;},{passive:true});
+})();
+</script>

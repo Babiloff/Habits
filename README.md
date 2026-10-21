@@ -45,7 +45,9 @@
 
 ## Где читать
 
-- Дорожная карта, фреймворк плана, столпы и принципы одной страницей: https://claude.ai/artifact/4YVgcWZHv1UUfhH7E1RC7x
+- Дорожная карта, фреймворк плана, столпы, принципы и ликбез одной страницей: https://claude.ai/artifact/4YVgcWZHv1UUfhH7E1RC7x
+- Трекер зачётов: https://claude.ai/artifact/WKbqnoMXds6SxZbuW6hpfJ (данные `tracker/data.json`, страница `tracker/index.html`)
+- Рекомендации по книгам, видео и медитациям: `materials/recommendations.md`
 - Исходник страницы: `site/project.html`. Источник правды остаётся в markdown-файлах ниже, страница их зеркало.
 
 ## Карта папок
