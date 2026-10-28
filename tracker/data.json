@@ -221,6 +221,16 @@
         ],
         "score_note": "план в Todoist, доработан по правкам; риски добавлены Claude как предложение"
       }
+    },
+    {
+      "date": "2026-10-28",
+      "main_task": "",
+      "main_done": null,
+      "habits": {
+        "plan": false
+      },
+      "note": "",
+      "plan": {}
     }
   ]
 }
