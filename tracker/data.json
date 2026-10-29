@@ -235,7 +235,7 @@
     {
       "date": "2026-10-29",
       "main_task": "Подготовить и отправить одно CV",
-      "main_done": null,
+      "main_done": "yes",
       "habits": {
         "plan": true
       },
